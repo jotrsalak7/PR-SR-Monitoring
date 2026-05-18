@@ -214,11 +214,7 @@ const SR_STATUS_SUMMARY = {"Selesai":297,"Sebagian diproses":22,"Menunggu dipros
 const PR_STATUS_SUMMARY = {"Selesai":730,"Sebagian diproses":82,"Menunggu diproses":206,"Ditutup":1};
 const SR_DPT_SUMMARY = {"ENGINEERING":28,"IT":15,"HRGA":63,"CONSTRUCTION":244,"HSSE":18,"PROCUREMENT":29,"QAQC":21};
 const PR_DPT_SUMMARY = {"HRGA":103,"ENGINEERING":237,"IT":80,"HSSE":75,"CONSTRUCTION":470,"PROCUREMENT":29,"QAQC":22};
-const TODAY = new Date('2026-05-10');
-const LAST_UPDATED = '05 Mei 2026';
-
-// GAS Backend URL — hardcoded for direct access
-let GAS_URL = 'https://script.google.com/macros/s/AKfycby7XdyCzpGybsW4689yjDhdfP0UdiAq-J_cQJyDP70N92C7RoKN_4Usmanx2wmZ6B8B/exec';
+// Data dates and config moved to second script tag
 </script>
 
 <!-- HEADER -->
@@ -237,7 +233,7 @@ let GAS_URL = 'https://script.google.com/macros/s/AKfycby7XdyCzpGybsW4689yjDhdfP
         </div>
       </div>
       <div class="hright">
-        <span class="update-badge">&#x25CF; Data per 05 Mei 2026 &mdash; <span id="update-time">belum sync</span></span>
+        <span class="update-badge">&#x25CF; Data Realtime &mdash; <span id="update-time">belum sync</span></span>
         <button class="hbtn" onclick="syncFromGAS()" title="Ambil data terbaru dari Google Sheets" id="btn-sync-sheets">
           <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
           Sync dari Sheets
@@ -815,8 +811,8 @@ let srSort={key:'tanggal',asc:false};
 let prSort={key:'tanggal',asc:false};
 let chartsInit={};
 
-// GAS URL — loaded from localStorage on startup, fallback to the default deployment
-let GAS_URL = localStorage.getItem('gas_url') || 'https://script.google.com/macros/s/AKfycbxph8wI8KQBA5mhPZRxSsSJHzS5RgxIXkUXLw0Sbd6RETpr4iLhCHV2F6E2maAcSORf/exec';
+// GAS URL — hardcoded for direct access
+let GAS_URL = localStorage.getItem('gas_url') || 'https://script.google.com/macros/s/AKfycby7XdyCzpGybsW4689yjDhdfP0UdiAq-J_cQJyDP70N92C7RoKN_4Usmanx2wmZ6B8B/exec';
 
 // Working copies (in-memory, sync to GAS on save)
 let srData = [...SR_DATA];
