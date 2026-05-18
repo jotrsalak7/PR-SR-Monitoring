@@ -806,8 +806,8 @@ let srSort={key:'tanggal',asc:false};
 let prSort={key:'tanggal',asc:false};
 let chartsInit={};
 
-// GAS URL — loaded from localStorage on startup
-let GAS_URL = localStorage.getItem('gas_url') || '';
+// GAS URL — loaded from localStorage on startup, fallback to the default deployment
+let GAS_URL = localStorage.getItem('gas_url') || 'https://script.google.com/macros/s/AKfycbxph8wI8KQBA5mhPZRxSsSJHzS5RgxIXkUXLw0Sbd6RETpr4iLhCHV2F6E2maAcSORf/exec';
 
 // Working copies (in-memory, sync to GAS on save)
 let srData = [...SR_DATA];
