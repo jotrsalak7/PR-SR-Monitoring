@@ -93,17 +93,40 @@ body{font-family:'Geist',-apple-system,sans-serif;background:linear-gradient(135
 
 /* ---- TABLE ---- */
 .table-wrap{overflow-x:auto}
-.dt{width:100%;border-collapse:collapse;font-size:.78rem}
-.dt th{text-align:left;padding:.7rem .875rem;font-size:.67rem;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.04em;background:rgba(15,23,42,.5);white-space:nowrap;cursor:pointer;user-select:none}
+.dt{width:100%;border-collapse:collapse;font-size:.78rem;table-layout:fixed}
+.dt th{text-align:left;padding:.7rem .875rem;font-size:.67rem;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.04em;background:rgba(15,23,42,.5);white-space:nowrap;cursor:pointer;user-select:none;overflow:hidden;text-overflow:ellipsis}
 .dt th:hover{color:#94a3b8}
-.dt td{padding:.75rem .875rem;border-bottom:1px solid rgba(51,65,85,.3);vertical-align:middle}
+.dt td{padding:.75rem .875rem;border-bottom:1px solid rgba(51,65,85,.3);vertical-align:middle;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dt tr:last-child td{border-bottom:none}
 .dt tr:hover td{background:rgba(51,65,85,.12)}
 .mono{font-family:'Geist Mono',monospace;font-size:.73rem}
 .sr-col{color:#2dd4bf}
 .po-col{color:#818cf8}
-.desc-cell{max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#cbd5e1}
-.date-cell{white-space:nowrap;color:#94a3b8;font-size:.73rem}
+.desc-cell{color:#cbd5e1}
+.date-cell{color:#94a3b8;font-size:.73rem}
+/* SR table col widths */
+.sr-table col.col-tgl{width:90px}
+.sr-table col.col-no{width:160px}
+.sr-table col.col-dpt{width:80px}
+.sr-table col.col-kode{width:80px}
+.sr-table col.col-nama{width:220px}
+.sr-table col.col-wbs{width:75px}
+.sr-table col.col-qty{width:45px}
+.sr-table col.col-status{width:110px}
+.sr-table col.col-po{width:145px}
+.sr-table col.col-vendor{width:115px}
+.sr-table col.col-aksi{width:90px}
+/* PR table col widths */
+.pr-table col.col-tgl{width:90px}
+.pr-table col.col-no{width:170px}
+.pr-table col.col-dpt{width:80px}
+.pr-table col.col-nama{width:240px}
+.pr-table col.col-wbs{width:75px}
+.pr-table col.col-qty{width:45px}
+.pr-table col.col-status{width:110px}
+.pr-table col.col-po{width:145px}
+.pr-table col.col-vendor{width:115px}
+.pr-table col.col-aksi{width:90px}
 
 /* ---- BADGES ---- */
 .badge{display:inline-flex;align-items:center;gap:.2rem;padding:.175rem .5rem;border-radius:9999px;font-size:.68rem;font-weight:600;border:1px solid;white-space:nowrap}
@@ -214,7 +237,11 @@ const SR_STATUS_SUMMARY = {"Selesai":297,"Sebagian diproses":22,"Menunggu dipros
 const PR_STATUS_SUMMARY = {"Selesai":730,"Sebagian diproses":82,"Menunggu diproses":206,"Ditutup":1};
 const SR_DPT_SUMMARY = {"ENGINEERING":28,"IT":15,"HRGA":63,"CONSTRUCTION":244,"HSSE":18,"PROCUREMENT":29,"QAQC":21};
 const PR_DPT_SUMMARY = {"HRGA":103,"ENGINEERING":237,"IT":80,"HSSE":75,"CONSTRUCTION":470,"PROCUREMENT":29,"QAQC":22};
-// Data dates and config moved to second script tag
+const TODAY = new Date('2026-05-10');
+const LAST_UPDATED = '05 Mei 2026';
+
+// GAS Backend URL — set via Connect Sheets button, stored in localStorage
+let GAS_URL = localStorage.getItem('gas_url') || '';
 </script>
 
 <!-- HEADER -->
@@ -233,7 +260,7 @@ const PR_DPT_SUMMARY = {"HRGA":103,"ENGINEERING":237,"IT":80,"HSSE":75,"CONSTRUC
         </div>
       </div>
       <div class="hright">
-        <span class="update-badge">&#x25CF; Data Realtime &mdash; <span id="update-time">belum sync</span></span>
+        <span class="update-badge">&#x25CF; Data per 05 Mei 2026 &mdash; <span id="update-time">belum sync</span></span>
         <button class="hbtn" onclick="syncFromGAS()" title="Ambil data terbaru dari Google Sheets" id="btn-sync-sheets">
           <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
           Sync dari Sheets
@@ -430,7 +457,13 @@ const PR_DPT_SUMMARY = {"HRGA":103,"ENGINEERING":237,"IT":80,"HSSE":75,"CONSTRUC
       </div>
     </div>
     <div class="table-wrap">
-      <table class="dt">
+      <table class="dt sr-table">
+        <colgroup>
+          <col class="col-tgl"><col class="col-no"><col class="col-dpt">
+          <col class="col-kode"><col class="col-nama"><col class="col-wbs">
+          <col class="col-qty"><col class="col-status"><col class="col-po">
+          <col class="col-vendor"><col class="col-aksi">
+        </colgroup>
         <thead><tr>
           <th onclick="sortSR('tanggal')">Tanggal ↕</th>
           <th onclick="sortSR('sr_no')">Nomor SR ↕</th>
@@ -438,7 +471,7 @@ const PR_DPT_SUMMARY = {"HRGA":103,"ENGINEERING":237,"IT":80,"HSSE":75,"CONSTRUC
           <th>Kode</th>
           <th>Nama Barang / Deskripsi</th>
           <th>WBS</th>
-          <th title="Kuantitas">Qty</th>
+          <th title="Kuantitas" style="text-align:center">Qty</th>
           <th onclick="sortSR('status_sr')">Status ↕</th>
           <th>PO/SO</th>
           <th>Vendor</th>
@@ -491,14 +524,20 @@ const PR_DPT_SUMMARY = {"HRGA":103,"ENGINEERING":237,"IT":80,"HSSE":75,"CONSTRUC
       </div>
     </div>
     <div class="table-wrap">
-      <table class="dt">
+      <table class="dt pr-table">
+        <colgroup>
+          <col class="col-tgl"><col class="col-no"><col class="col-dpt">
+          <col class="col-nama"><col class="col-wbs"><col class="col-qty">
+          <col class="col-status"><col class="col-po">
+          <col class="col-vendor"><col class="col-aksi">
+        </colgroup>
         <thead><tr>
           <th onclick="sortPR('tanggal')">Tanggal ↕</th>
           <th onclick="sortPR('pr_no')">Nomor PR ↕</th>
           <th>DPT</th>
           <th>Nama Barang / Deskripsi</th>
           <th>WBS</th>
-          <th title="Kuantitas">Qty</th>
+          <th title="Kuantitas" style="text-align:center">Qty</th>
           <th onclick="sortPR('status_pr')">Status ↕</th>
           <th>PO</th>
           <th>Vendor</th>
@@ -811,8 +850,8 @@ let srSort={key:'tanggal',asc:false};
 let prSort={key:'tanggal',asc:false};
 let chartsInit={};
 
-// GAS URL — hardcoded for direct access
-let GAS_URL = localStorage.getItem('gas_url') || 'https://script.google.com/macros/s/AKfycby7XdyCzpGybsW4689yjDhdfP0UdiAq-J_cQJyDP70N92C7RoKN_4Usmanx2wmZ6B8B/exec';
+// GAS URL — loaded from localStorage on startup, fallback to the default deployment
+let GAS_URL = localStorage.getItem('gas_url') || 'https://script.google.com/macros/s/AKfycbxph8wI8KQBA5mhPZRxSsSJHzS5RgxIXkUXLw0Sbd6RETpr4iLhCHV2F6E2maAcSORf/exec';
 
 // Working copies (in-memory, sync to GAS on save)
 let srData = [...SR_DATA];
@@ -1032,17 +1071,18 @@ function renderSR(){
     const sl=data.slice((srPage-1)*PAGE,srPage*PAGE);
     document.getElementById('sr-tbody').innerHTML=sl.map(r=>{
         const idx=srData.indexOf(r);
+        const esc=v=>(v||'').replace(/"/g,'&quot;').replace(/</g,'&lt;');
         return `<tr>
-            <td class="date-cell">${r.tanggal}</td>
-            <td class="mono sr-col" style="white-space:nowrap">${r.sr_no}</td>
+            <td class="date-cell">${r.tanggal||'—'}</td>
+            <td class="mono sr-col">${r.sr_no||'—'}</td>
             <td>${dptBadge(r.dpt)}</td>
             <td class="mono" style="font-size:.7rem;color:#64748b">${r.kode||'—'}</td>
-            <td class="desc-cell" title="${r.nama_barang||r.catatan}">${r.nama_barang||r.catatan||r.purpose||'—'}</td>
+            <td title="${esc(r.nama_barang||r.catatan)}" style="color:#cbd5e1">${r.nama_barang||r.catatan||r.purpose||'—'}</td>
             <td style="font-size:.7rem;color:#64748b">${r.wbs||'—'}</td>
             <td style="text-align:center;font-size:.75rem;color:#94a3b8">${r.kuantitas||r.items||'—'}</td>
             <td>${statusBadge(r.status_sr)}</td>
-            <td class="mono po-col" style="font-size:.7rem;white-space:nowrap">${r.po_no||'—'}</td>
-            <td style="font-size:.7rem;color:#94a3b8;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.vendor}">${r.vendor||'—'}</td>
+            <td class="mono po-col" style="font-size:.7rem">${r.po_no||'—'}</td>
+            <td style="font-size:.7rem;color:#94a3b8" title="${esc(r.vendor)}">${r.vendor||'—'}</td>
             <td>${actionBtns('SR',idx,r.sr_no)}</td>
         </tr>`;
     }).join('')||'<tr><td colspan="11" style="text-align:center;color:#64748b;padding:2rem">Tidak ada data</td></tr>';
@@ -1093,16 +1133,17 @@ function renderPR(){
     const sl=data.slice((prPage-1)*PAGE,prPage*PAGE);
     document.getElementById('pr-tbody').innerHTML=sl.map(r=>{
         const idx=prData.indexOf(r);
+        const esc=v=>(v||'').replace(/"/g,'&quot;').replace(/</g,'&lt;');
         return `<tr>
-            <td class="date-cell">${r.tanggal}</td>
-            <td class="mono sr-col" style="white-space:nowrap;font-size:.7rem">${r.pr_no}</td>
+            <td class="date-cell">${r.tanggal||'—'}</td>
+            <td class="mono sr-col" style="font-size:.7rem">${r.pr_no||'—'}</td>
             <td>${dptBadge(r.dpt)}</td>
-            <td class="desc-cell" title="${r.nama_barang||r.catatan}">${r.nama_barang||r.catatan||r.purpose||'—'}</td>
+            <td title="${esc(r.nama_barang||r.catatan)}" style="color:#cbd5e1">${r.nama_barang||r.catatan||r.purpose||'—'}</td>
             <td style="font-size:.7rem;color:#64748b">${r.wbs||'—'}</td>
             <td style="text-align:center;font-size:.75rem;color:#94a3b8">${r.kuantitas||r.items||'—'}</td>
             <td>${statusBadge(r.status_pr)}</td>
-            <td class="mono po-col" style="font-size:.7rem;white-space:nowrap">${r.po_no||'—'}</td>
-            <td style="font-size:.7rem;color:#94a3b8;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.vendor}">${r.vendor||'—'}</td>
+            <td class="mono po-col" style="font-size:.7rem">${r.po_no||'—'}</td>
+            <td style="font-size:.7rem;color:#94a3b8" title="${esc(r.vendor)}">${r.vendor||'—'}</td>
             <td>${actionBtns('PR',idx,r.pr_no)}</td>
         </tr>`;
     }).join('')||'<tr><td colspan="10" style="text-align:center;color:#64748b;padding:2rem">Tidak ada data</td></tr>';
@@ -1242,6 +1283,8 @@ function openAddModal(type){
     document.getElementById('m-tanggal').value=new Date().toISOString().slice(0,10);
     document.getElementById('m-qty').value='';
     document.getElementById('modal-srpr').style.display='flex';
+    // Reset detail items table with one blank row
+    renderDetailEditRows([]);
 }
 
 function openEditModal(type,idx){
@@ -1274,6 +1317,8 @@ function openEditModal(type,idx){
         document.getElementById('m-final-del').value=r.final_delivery||'';
     }
     document.getElementById('modal-srpr').style.display='flex';
+    // Populate detail items table
+    renderDetailEditRows(r.details || []);
 }
 
 function saveRecord(){
@@ -1298,6 +1343,12 @@ function saveRecord(){
         kuantitas:parseInt(document.getElementById('m-qty').value)||1,
         items:parseInt(document.getElementById('m-qty').value)||1
     };
+
+    // Collect details[] from the edit table
+    const details = getDetailRowsFromDOM();
+    rec.details = details;
+    // items = count of detail lines if available, else keep manual qty
+    if(details.length > 0) rec.items = details.length;
 
     if(type==='SR'){
         rec.sr_no=no;
