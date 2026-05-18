@@ -931,38 +931,42 @@ function initOverview(){
     document.getElementById('out-alert-text').textContent=`${pending.length} SR + ${prPending.length} PR dalam status Outstanding — belum ada PO/SO yang dikeluarkan.`;
 
     // Monthly chart SR
-    const mL=MONTHLY_SR.map(([m])=>m.replace('20',''));
-    const mD=MONTHLY_SR.map(([,v])=>v);
-    if(!chartsInit.monthly){
-        chartsInit.monthly=new Chart(document.getElementById('chart-sr-monthly'),{
-            type:'bar',
-            data:{labels:mL,datasets:[{label:'SR baru',data:mD,
-                backgroundColor:mD.map((_,i)=>i===mD.length-1?'rgba(244,114,182,.7)':'rgba(20,184,166,.55)'),
-                borderColor:mD.map((_,i)=>i===mD.length-1?'#f472b6':'#14b8a6'),
-                borderWidth:1,borderRadius:3}]},
-            options:{responsive:true,maintainAspectRatio:false,
-                plugins:{legend:{display:false}},
-                scales:{x:{ticks:{color:'#64748b',font:{size:9}},grid:{color:'rgba(51,65,85,.25)'}},
-                        y:{ticks:{color:'#64748b'},grid:{color:'rgba(51,65,85,.25)'}}}}
-        });
-    }
+    if (typeof Chart !== 'undefined') {
+        const mL=MONTHLY_SR.map(([m])=>m.replace('20',''));
+        const mD=MONTHLY_SR.map(([,v])=>v);
+        if(!chartsInit.monthly){
+            chartsInit.monthly=new Chart(document.getElementById('chart-sr-monthly'),{
+                type:'bar',
+                data:{labels:mL,datasets:[{label:'SR baru',data:mD,
+                    backgroundColor:mD.map((_,i)=>i===mD.length-1?'rgba(244,114,182,.7)':'rgba(20,184,166,.55)'),
+                    borderColor:mD.map((_,i)=>i===mD.length-1?'#f472b6':'#14b8a6'),
+                    borderWidth:1,borderRadius:3}]},
+                options:{responsive:true,maintainAspectRatio:false,
+                    plugins:{legend:{display:false}},
+                    scales:{x:{ticks:{color:'#64748b',font:{size:9}},grid:{color:'rgba(51,65,85,.25)'}},
+                            y:{ticks:{color:'#64748b'},grid:{color:'rgba(51,65,85,.25)'}}}}
+            });
+        }
 
-    // Status chart combined
-    if(!chartsInit.status){
-        const labels=['Selesai','Menunggu','Sebagian','Ditutup'];
-        const srVals=[SR_STATUS_SUMMARY['Selesai']||0,SR_STATUS_SUMMARY['Menunggu diproses']||0,SR_STATUS_SUMMARY['Sebagian diproses']||0,SR_STATUS_SUMMARY['Ditutup']||0];
-        const prVals=[PR_STATUS_SUMMARY['Selesai']||0,PR_STATUS_SUMMARY['Menunggu diproses']||0,PR_STATUS_SUMMARY['Sebagian diproses']||0,PR_STATUS_SUMMARY['Ditutup']||0];
-        chartsInit.status=new Chart(document.getElementById('chart-status'),{
-            type:'bar',
-            data:{labels,datasets:[
-                {label:'SR',data:srVals,backgroundColor:'rgba(20,184,166,.6)',borderColor:'#14b8a6',borderWidth:1,borderRadius:3},
-                {label:'PR',data:prVals,backgroundColor:'rgba(99,102,241,.6)',borderColor:'#6366f1',borderWidth:1,borderRadius:3}
-            ]},
-            options:{responsive:true,maintainAspectRatio:false,
-                plugins:{legend:{labels:{color:'#94a3b8'}}},
-                scales:{x:{ticks:{color:'#64748b'},grid:{color:'rgba(51,65,85,.25)'}},
-                        y:{ticks:{color:'#64748b'},grid:{color:'rgba(51,65,85,.25)'}}}}
-        });
+        // Status chart combined
+        if(!chartsInit.status){
+            const labels=['Selesai','Menunggu','Sebagian','Ditutup'];
+            const srVals=[SR_STATUS_SUMMARY['Selesai']||0,SR_STATUS_SUMMARY['Menunggu diproses']||0,SR_STATUS_SUMMARY['Sebagian diproses']||0,SR_STATUS_SUMMARY['Ditutup']||0];
+            const prVals=[PR_STATUS_SUMMARY['Selesai']||0,PR_STATUS_SUMMARY['Menunggu diproses']||0,PR_STATUS_SUMMARY['Sebagian diproses']||0,PR_STATUS_SUMMARY['Ditutup']||0];
+            chartsInit.status=new Chart(document.getElementById('chart-status'),{
+                type:'bar',
+                data:{labels,datasets:[
+                    {label:'SR',data:srVals,backgroundColor:'rgba(20,184,166,.6)',borderColor:'#14b8a6',borderWidth:1,borderRadius:3},
+                    {label:'PR',data:prVals,backgroundColor:'rgba(99,102,241,.6)',borderColor:'#6366f1',borderWidth:1,borderRadius:3}
+                ]},
+                options:{responsive:true,maintainAspectRatio:false,
+                    plugins:{legend:{labels:{color:'#94a3b8'}}},
+                    scales:{x:{ticks:{color:'#64748b'},grid:{color:'rgba(51,65,85,.25)'}},
+                            y:{ticks:{color:'#64748b'},grid:{color:'rgba(51,65,85,.25)'}}}}
+            });
+        }
+    } else {
+        console.warn('Chart.js is not loaded. Skipping chart initialization.');
     }
 
     // Recent SR
