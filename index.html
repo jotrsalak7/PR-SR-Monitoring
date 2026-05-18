@@ -1185,25 +1185,27 @@ function renderDeptPerf(){
 
     // Charts
     const colors=['rgba(20,184,166,.6)','rgba(168,85,247,.6)','rgba(20,184,166,.6)','rgba(239,68,68,.6)','rgba(16,185,129,.6)','rgba(245,158,11,.6)','rgba(244,114,182,.6)'];
-    if(!chartsInit.dpt){
-        chartsInit.dpt=new Chart(document.getElementById('chart-dpt'),{
-            type:'bar',
-            data:{labels:dpts,datasets:[
-                {label:'Total',data:dpts.map(d=>SR_DPT_SUMMARY[d]||0),backgroundColor:'rgba(20,184,166,.4)',borderColor:'#14b8a6',borderWidth:1,borderRadius:3},
-                {label:'Pending',data:dpts.map(d=>perf[d].pending),backgroundColor:'rgba(245,158,11,.4)',borderColor:'#f59e0b',borderWidth:1,borderRadius:3}
-            ]},
-            options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#94a3b8'}}},scales:{x:{ticks:{color:'#64748b',font:{size:10}},grid:{color:'rgba(51,65,85,.25)'}},y:{ticks:{color:'#64748b'},grid:{color:'rgba(51,65,85,.25)'}}}}
-        });
-        chartsInit.dptpr=new Chart(document.getElementById('chart-dpt-pr'),{
-            type:'bar',
-            data:{labels:dpts,datasets:[
-                {label:'Total PR',data:dpts.map(d=>PR_DPT_SUMMARY[d]||0),backgroundColor:'rgba(99,102,241,.4)',borderColor:'#6366f1',borderWidth:1,borderRadius:3},
-                {label:'Pending',data:dpts.map(d=>{
-                    return prData.filter(r=>(r.dpt||'').trim().toUpperCase()===d&&r.status_pr==='Menunggu diproses').length;
-                }),backgroundColor:'rgba(245,158,11,.4)',borderColor:'#f59e0b',borderWidth:1,borderRadius:3}
-            ]},
-            options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#94a3b8'}}},scales:{x:{ticks:{color:'#64748b',font:{size:10}},grid:{color:'rgba(51,65,85,.25)'}},y:{ticks:{color:'#64748b'},grid:{color:'rgba(51,65,85,.25)'}}}}
-        });
+    if (typeof Chart !== 'undefined') {
+        if(!chartsInit.dpt){
+            chartsInit.dpt=new Chart(document.getElementById('chart-dpt'),{
+                type:'bar',
+                data:{labels:dpts,datasets:[
+                    {label:'Total',data:dpts.map(d=>SR_DPT_SUMMARY[d]||0),backgroundColor:'rgba(20,184,166,.4)',borderColor:'#14b8a6',borderWidth:1,borderRadius:3},
+                    {label:'Pending',data:dpts.map(d=>perf[d].pending),backgroundColor:'rgba(245,158,11,.4)',borderColor:'#f59e0b',borderWidth:1,borderRadius:3}
+                ]},
+                options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#94a3b8'}}},scales:{x:{ticks:{color:'#64748b',font:{size:10}},grid:{color:'rgba(51,65,85,.25)'}},y:{ticks:{color:'#64748b'},grid:{color:'rgba(51,65,85,.25)'}}}}
+            });
+            chartsInit.dptpr=new Chart(document.getElementById('chart-dpt-pr'),{
+                type:'bar',
+                data:{labels:dpts,datasets:[
+                    {label:'Total PR',data:dpts.map(d=>PR_DPT_SUMMARY[d]||0),backgroundColor:'rgba(99,102,241,.4)',borderColor:'#6366f1',borderWidth:1,borderRadius:3},
+                    {label:'Pending',data:dpts.map(d=>{
+                        return prData.filter(r=>(r.dpt||'').trim().toUpperCase()===d&&r.status_pr==='Menunggu diproses').length;
+                    }),backgroundColor:'rgba(245,158,11,.4)',borderColor:'#f59e0b',borderWidth:1,borderRadius:3}
+                ]},
+                options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#94a3b8'}}},scales:{x:{ticks:{color:'#64748b',font:{size:10}},grid:{color:'rgba(51,65,85,.25)'}},y:{ticks:{color:'#64748b'},grid:{color:'rgba(51,65,85,.25)'}}}}
+            });
+        }
     }
 }
 
