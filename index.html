@@ -218,7 +218,7 @@ const TODAY = new Date('2026-05-10');
 const LAST_UPDATED = '05 Mei 2026';
 
 // GAS Backend URL (configure after deploy)
-let GAS_URL = localStorage.getItem('gas_url') || '';
+let GAS_URL = localStorage.getItem('gas_url') || 'https://script.google.com/macros/s/AKfycbwQtYHEf77IPLsLvgizt5gR3mf0dbC4SQtC0jv_4lKI5yeK81lEDi6msJdpfylr3vJv/exec';
 </script>
 
 <!-- HEADER -->
@@ -618,6 +618,10 @@ let GAS_URL = localStorage.getItem('gas_url') || '';
         <div class="form-group">
           <label class="form-label">WBS</label>
           <input class="form-input" id="m-wbs" placeholder="CN.1.5">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Kuantitas</label>
+          <input class="form-input" id="m-qty" type="number" min="1" placeholder="1">
         </div>
         <div class="form-group">
           <label class="form-label">Status SR/PR *</label>
@@ -1110,6 +1114,7 @@ function openEditModal(type,idx){
     document.getElementById('m-po-status').value=r.po_status||'';
     document.getElementById('m-purpose').value=r.purpose||'';
     document.getElementById('m-catatan').value=r.catatan||'';
+    document.getElementById('m-qty').value=r.kuantitas||r.items||1;
     if(type==='PR'){
         document.getElementById('m-tgl-diminta').value=r.tgl_diminta||'';
         document.getElementById('m-final-del').value=r.final_delivery||'';
@@ -1134,7 +1139,8 @@ function saveRecord(){
         po_status:document.getElementById('m-po-status').value,
         purpose:document.getElementById('m-purpose').value,
         catatan:document.getElementById('m-catatan').value,
-        items:1
+        kuantitas:parseInt(document.getElementById('m-qty').value)||1,
+        items:parseInt(document.getElementById('m-qty').value)||1
     };
 
     if(type==='SR'){
@@ -1233,12 +1239,12 @@ function disconnectGas(){
 function exportCSV(type){
     const data=type==='SR'?srData:prData;
     const header=type==='SR'
-        ?'Nomor SR,Tanggal,DPT,Status SR,PO/SO,Vendor,Status PO,WBS,Purpose,Catatan'
-        :'Nomor PR,Tanggal,Tgl Diminta,DPT,Status PR,PO,Vendor,Status PO,WBS,Purpose,Catatan,Final Delivery';
+        ?'Nomor SR,Tanggal,DPT,Status SR,PO/SO,Vendor,Status PO,WBS,Kuantitas,Purpose,Catatan'
+        :'Nomor PR,Tanggal,Tgl Diminta,DPT,Status PR,PO,Vendor,Status PO,WBS,Kuantitas,Purpose,Catatan,Final Delivery';
     const rows=data.map(r=>{
         const esc=v=>'"'+(v||'').replace(/"/g,'""')+'"';
-        if(type==='SR') return [r.sr_no,r.tanggal,r.dpt,r.status_sr,r.po_no,r.vendor,r.po_status,r.wbs,r.purpose,r.catatan].map(esc).join(',');
-        return [r.pr_no,r.tanggal,r.tgl_diminta,r.dpt,r.status_pr,r.po_no,r.vendor,r.po_status,r.wbs,r.purpose,r.catatan,r.final_delivery].map(esc).join(',');
+        if(type==='SR') return [r.sr_no,r.tanggal,r.dpt,r.status_sr,r.po_no,r.vendor,r.po_status,r.wbs,r.kuantitas||r.items||1,r.purpose,r.catatan].map(esc).join(',');
+        return [r.pr_no,r.tanggal,r.tgl_diminta,r.dpt,r.status_pr,r.po_no,r.vendor,r.po_status,r.wbs,r.kuantitas||r.items||1,r.purpose,r.catatan,r.final_delivery].map(esc).join(',');
     });
     const csv=[header,...rows].join('\n');
     const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
