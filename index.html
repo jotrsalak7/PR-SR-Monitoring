@@ -217,8 +217,8 @@ const PR_DPT_SUMMARY = {"HRGA":103,"ENGINEERING":237,"IT":80,"HSSE":75,"CONSTRUC
 const TODAY = new Date('2026-05-10');
 const LAST_UPDATED = '05 Mei 2026';
 
-// GAS Backend URL (configure after deploy)
-let GAS_URL = localStorage.getItem('gas_url') || 'https://script.google.com/macros/s/AKfycbwQtYHEf77IPLsLvgizt5gR3mf0dbC4SQtC0jv_4lKI5yeK81lEDi6msJdpfylr3vJv/exec';
+// GAS Backend URL — set via Connect Sheets button, stored in localStorage
+let GAS_URL = localStorage.getItem('gas_url') || '';
 </script>
 
 <!-- HEADER -->
@@ -439,9 +439,10 @@ let GAS_URL = localStorage.getItem('gas_url') || 'https://script.google.com/macr
           <th onclick="sortSR('tanggal')">Tanggal ↕</th>
           <th onclick="sortSR('sr_no')">Nomor SR ↕</th>
           <th>DPT</th>
-          <th>Deskripsi</th>
+          <th>Kode</th>
+          <th>Nama Barang / Deskripsi</th>
           <th>WBS</th>
-          <th title="Jumlah line item">Items</th>
+          <th title="Kuantitas">Qty</th>
           <th onclick="sortSR('status_sr')">Status ↕</th>
           <th>PO/SO</th>
           <th>Vendor</th>
@@ -501,7 +502,7 @@ let GAS_URL = localStorage.getItem('gas_url') || 'https://script.google.com/macr
           <th>DPT</th>
           <th>Nama Barang / Deskripsi</th>
           <th>WBS</th>
-          <th title="Jumlah line item">Items</th>
+          <th title="Kuantitas">Qty</th>
           <th onclick="sortPR('status_pr')">Status ↕</th>
           <th>PO</th>
           <th>Vendor</th>
@@ -612,6 +613,14 @@ let GAS_URL = localStorage.getItem('gas_url') || 'https://script.google.com/macr
         <div class="form-group">
           <label class="form-label">Tanggal *</label>
           <input class="form-input" id="m-tanggal" type="date" required>
+        </div>
+        <div class="form-group" id="m-kode-group">
+          <label class="form-label">Kode Item (Accurate)</label>
+          <input class="form-input" id="m-kode" placeholder="Kode # dari Accurate">
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Nama Barang / Deskripsi *</label>
+          <input class="form-input" id="m-nama-barang" placeholder="Nama barang atau deskripsi pekerjaan">
         </div>
         <div class="form-group">
           <label class="form-label">Departemen *</label>
@@ -994,6 +1003,8 @@ function getSRFiltered(){
     return srData.filter(r=>{
         if(q){
             const inMain = r.sr_no.toLowerCase().includes(q)
+                || (r.kode||'').toLowerCase().includes(q)
+                || (r.nama_barang||'').toLowerCase().includes(q)
                 || (r.catatan||'').toLowerCase().includes(q)
                 || (r.purpose||'').toLowerCase().includes(q)
                 || (r.vendor||'').toLowerCase().includes(q)
@@ -1029,15 +1040,16 @@ function renderSR(){
             <td class="date-cell">${r.tanggal}</td>
             <td class="mono sr-col" style="white-space:nowrap">${r.sr_no}</td>
             <td>${dptBadge(r.dpt)}</td>
-            <td class="desc-cell" title="${r.catatan}">${r.catatan||r.purpose||'—'}</td>
+            <td class="mono" style="font-size:.7rem;color:#64748b">${r.kode||'—'}</td>
+            <td class="desc-cell" title="${r.nama_barang||r.catatan}">${r.nama_barang||r.catatan||r.purpose||'—'}</td>
             <td style="font-size:.7rem;color:#64748b">${r.wbs||'—'}</td>
-            <td onclick="openDetailModal('SR',${idx})" style="cursor:pointer;text-align:center">${detailItemsBadge(r)}</td>
+            <td style="text-align:center;font-size:.75rem;color:#94a3b8">${r.kuantitas||r.items||'—'}</td>
             <td>${statusBadge(r.status_sr)}</td>
             <td class="mono po-col" style="font-size:.7rem;white-space:nowrap">${r.po_no||'—'}</td>
             <td style="font-size:.7rem;color:#94a3b8;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.vendor}">${r.vendor||'—'}</td>
             <td>${actionBtns('SR',idx,r.sr_no)}</td>
         </tr>`;
-    }).join('')||'<tr><td colspan="10" style="text-align:center;color:#64748b;padding:2rem">Tidak ada data</td></tr>';
+    }).join('')||'<tr><td colspan="11" style="text-align:center;color:#64748b;padding:2rem">Tidak ada data</td></tr>';
     makePager('sr-pager',srPage,data.length,(p)=>{srPage=p;renderSR();});
 }
 
@@ -1053,6 +1065,7 @@ function getPRFiltered(){
         const dptVal=(r.dpt||'').trim().toUpperCase();
         if(q){
             const inMain = r.pr_no.toLowerCase().includes(q)
+                || (r.nama_barang||'').toLowerCase().includes(q)
                 || (r.catatan||'').toLowerCase().includes(q)
                 || (r.purpose||'').toLowerCase().includes(q)
                 || (r.vendor||'').toLowerCase().includes(q)
@@ -1088,9 +1101,9 @@ function renderPR(){
             <td class="date-cell">${r.tanggal}</td>
             <td class="mono sr-col" style="white-space:nowrap;font-size:.7rem">${r.pr_no}</td>
             <td>${dptBadge(r.dpt)}</td>
-            <td class="desc-cell" title="${r.catatan}">${r.catatan||r.purpose||'—'}</td>
+            <td class="desc-cell" title="${r.nama_barang||r.catatan}">${r.nama_barang||r.catatan||r.purpose||'—'}</td>
             <td style="font-size:.7rem;color:#64748b">${r.wbs||'—'}</td>
-            <td onclick="openDetailModal('PR',${idx})" style="cursor:pointer;text-align:center">${detailItemsBadge(r)}</td>
+            <td style="text-align:center;font-size:.75rem;color:#94a3b8">${r.kuantitas||r.items||'—'}</td>
             <td>${statusBadge(r.status_pr)}</td>
             <td class="mono po-col" style="font-size:.7rem;white-space:nowrap">${r.po_no||'—'}</td>
             <td style="font-size:.7rem;color:#94a3b8;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.vendor}">${r.vendor||'—'}</td>
@@ -1219,9 +1232,11 @@ function openAddModal(type){
     document.getElementById('modal-title').textContent=`Tambah ${type} Baru`;
     document.getElementById('btn-delete-modal').style.display='none';
     document.getElementById('m-pr-fields').style.display=type==='PR'?'block':'none';
+    // Kode field hanya untuk SR
+    document.getElementById('m-kode-group').style.display=type==='SR'?'block':'none';
 
     // Clear fields
-    ['m-no','m-tanggal','m-wbs','m-po','m-vendor','m-purpose','m-catatan','m-tgl-diminta','m-final-del'].forEach(id=>{
+    ['m-no','m-tanggal','m-wbs','m-po','m-vendor','m-purpose','m-catatan','m-tgl-diminta','m-final-del','m-kode','m-nama-barang'].forEach(id=>{
         const el=document.getElementById(id);
         if(el) el.value='';
     });
@@ -1244,9 +1259,13 @@ function openEditModal(type,idx){
     document.getElementById('modal-title').textContent=`Edit ${type}: ${type==='SR'?r.sr_no:r.pr_no}`;
     document.getElementById('btn-delete-modal').style.display='inline-flex';
     document.getElementById('m-pr-fields').style.display=type==='PR'?'block':'none';
+    // Kode field hanya untuk SR
+    document.getElementById('m-kode-group').style.display=type==='SR'?'block':'none';
 
     document.getElementById('m-no').value=type==='SR'?r.sr_no:r.pr_no;
     document.getElementById('m-tanggal').value=r.tanggal||'';
+    document.getElementById('m-kode').value=r.kode||'';
+    document.getElementById('m-nama-barang').value=r.nama_barang||r.catatan||'';
     document.getElementById('m-dpt').value=r.dpt||'';
     document.getElementById('m-wbs').value=r.wbs||'';
     document.getElementById('m-status').value=type==='SR'?(r.status_sr||'Menunggu diproses'):(r.status_pr||'Menunggu diproses');
@@ -1276,6 +1295,8 @@ function saveRecord(){
     const rec={
         tanggal,
         dpt:document.getElementById('m-dpt').value,
+        kode:document.getElementById('m-kode').value,
+        nama_barang:document.getElementById('m-nama-barang').value,
         wbs:document.getElementById('m-wbs').value,
         po_no:document.getElementById('m-po').value,
         vendor:document.getElementById('m-vendor').value,
@@ -1498,7 +1519,9 @@ function pasteImportToDetails(){
 async function syncToGAS(action, type, record){
     if(!GAS_URL) return;
     try{
-        const payload={action,type,record,timestamp:new Date().toISOString()};
+        // Map action: add stays as add, delete stays as delete, edit uses full 'edit' action
+        const gasAction = action === 'add' ? 'add' : action === 'delete' ? 'delete' : 'edit';
+        const payload={action:gasAction,type,record,timestamp:new Date().toISOString()};
         const resp=await fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
         const data=await resp.json();
         if(data.success) showToast('✓ Tersinkronisasi ke Google Sheets','info');
@@ -1517,7 +1540,7 @@ async function syncFromGAS(){
         const srResp = await fetch(GAS_URL+'?action=read&type=SR');
         const srJson = await srResp.json();
         if(srJson.success && srJson.data && srJson.data.length > 0){
-            srData = srJson.data.map(r=>({...r, items:parseInt(r.items)||1}));
+            srData = srJson.data.map(r=>({...r, kuantitas:r.kuantitas||r.items||1}));
         } else if(srJson.success){
             showToast('ℹ️ Sheet SR kosong, data lokal dipertahankan','info');
         } else {
@@ -1528,7 +1551,7 @@ async function syncFromGAS(){
         const prResp = await fetch(GAS_URL+'?action=read&type=PR');
         const prJson = await prResp.json();
         if(prJson.success && prJson.data && prJson.data.length > 0){
-            prData = prJson.data.map(r=>({...r, items:parseInt(r.items)||1}));
+            prData = prJson.data.map(r=>({...r, kuantitas:r.kuantitas||r.items||1}));
         } else if(prJson.success){
             showToast('ℹ️ Sheet PR kosong, data lokal dipertahankan','info');
         } else {
@@ -1574,7 +1597,7 @@ function openDetailModal(type, idx){
 
     document.getElementById('detail-modal-title').textContent = `Detail Item — ${no}`;
     document.getElementById('detail-modal-sub').textContent =
-        `${r.dpt||'—'} | Tgl: ${r.tanggal||'—'} | WBS: ${r.wbs||'—'} | Status: ${type==='SR'?(r.status_sr||'—'):(r.status_pr||'—')}`;
+        `${r.dpt||'—'} | Tgl: ${r.tanggal||'—'} | WBS: ${r.wbs||'—'} | Status: ${type==='SR'?(r.status_sr||'—'):(r.status_pr||'—')}${r.nama_barang?' | '+r.nama_barang:''}`;
 
     const details = r.details || [];
     const totalItems = details.length || (r.items || r.kuantitas || 1);
@@ -1673,12 +1696,12 @@ function disconnectGas(){
 function exportCSV(type){
     const data=type==='SR'?srData:prData;
     const header=type==='SR'
-        ?'Nomor SR,Tanggal,DPT,Status SR,PO/SO,Vendor,Status PO,WBS,Kuantitas,Purpose,Catatan'
-        :'Nomor PR,Tanggal,Tgl Diminta,DPT,Status PR,PO,Vendor,Status PO,WBS,Kuantitas,Purpose,Catatan,Final Delivery';
+        ?'Nomor SR,Tanggal,DPT,Kode,Nama Barang,Status SR,PO/SO,Vendor,Status PO,WBS,Kuantitas,Purpose,Catatan'
+        :'Nomor PR,Tanggal,Tgl Diminta,DPT,Nama Barang,Status PR,PO,Vendor,Status PO,WBS,Kuantitas,Purpose,Catatan,Final Delivery';
     const rows=data.map(r=>{
         const esc=v=>'"'+(v||'').replace(/"/g,'""')+'"';
-        if(type==='SR') return [r.sr_no,r.tanggal,r.dpt,r.status_sr,r.po_no,r.vendor,r.po_status,r.wbs,r.kuantitas||r.items||1,r.purpose,r.catatan].map(esc).join(',');
-        return [r.pr_no,r.tanggal,r.tgl_diminta,r.dpt,r.status_pr,r.po_no,r.vendor,r.po_status,r.wbs,r.kuantitas||r.items||1,r.purpose,r.catatan,r.final_delivery].map(esc).join(',');
+        if(type==='SR') return [r.sr_no,r.tanggal,r.dpt,r.kode,r.nama_barang||r.catatan,r.status_sr,r.po_no,r.vendor,r.po_status,r.wbs,r.kuantitas||r.items||1,r.purpose,r.catatan].map(esc).join(',');
+        return [r.pr_no,r.tanggal,r.tgl_diminta,r.dpt,r.nama_barang||r.catatan,r.status_pr,r.po_no,r.vendor,r.po_status,r.wbs,r.kuantitas||r.items||1,r.purpose,r.catatan,r.final_delivery].map(esc).join(',');
     });
     const csv=[header,...rows].join('\n');
     const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
