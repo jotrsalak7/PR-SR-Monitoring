@@ -1544,6 +1544,14 @@ async function syncFromGAS(){
     } catch(e){
         showToast('⚠️ Gagal ambil data: '+e.message,'error');
         console.error('syncFromGAS error:', e);
+        // Fallback to render local data if sync fails, ensuring UI isn't broken
+        chartsInit={};
+        buildSummaries();
+        initOverview();
+        renderSR();
+        renderPR();
+        renderOutstanding();
+        renderDeptPerf();
     }
 }
 
@@ -1693,12 +1701,17 @@ function showToast(msg,type='info'){
 // ============================================================
 document.addEventListener('DOMContentLoaded',()=>{
     buildSummaries();
+    // Render initial local data immediately so the dashboard isn't blank
+    initOverview();
+    renderSR();
+    renderPR();
+    renderOutstanding();
+    renderDeptPerf();
+
     if(GAS_URL){
         document.getElementById('gas-status-label').textContent='Sheets Connected ✓';
         // Auto-pull data from Sheets on startup if URL is configured
         syncFromGAS();
-    } else {
-        initOverview();
     }
 });
 </script>
