@@ -217,8 +217,8 @@ const PR_DPT_SUMMARY = {"HRGA":103,"ENGINEERING":237,"IT":80,"HSSE":75,"CONSTRUC
 const TODAY = new Date('2026-05-10');
 const LAST_UPDATED = '05 Mei 2026';
 
-// GAS Backend URL — set via Connect Sheets button, stored in localStorage
-let GAS_URL = localStorage.getItem('gas_url') || '';
+// GAS Backend URL — hardcoded for direct access
+let GAS_URL = 'https://script.google.com/macros/s/AKfycby7XdyCzpGybsW4689yjDhdfP0UdiAq-J_cQJyDP70N92C7RoKN_4Usmanx2wmZ6B8B/exec';
 </script>
 
 <!-- HEADER -->
@@ -1246,8 +1246,6 @@ function openAddModal(type){
     document.getElementById('m-tanggal').value=new Date().toISOString().slice(0,10);
     document.getElementById('m-qty').value='';
     document.getElementById('modal-srpr').style.display='flex';
-    // Reset detail items table with one blank row
-    renderDetailEditRows([]);
 }
 
 function openEditModal(type,idx){
@@ -1280,8 +1278,6 @@ function openEditModal(type,idx){
         document.getElementById('m-final-del').value=r.final_delivery||'';
     }
     document.getElementById('modal-srpr').style.display='flex';
-    // Populate detail items table
-    renderDetailEditRows(r.details || []);
 }
 
 function saveRecord(){
@@ -1306,12 +1302,6 @@ function saveRecord(){
         kuantitas:parseInt(document.getElementById('m-qty').value)||1,
         items:parseInt(document.getElementById('m-qty').value)||1
     };
-
-    // Collect details[] from the edit table
-    const details = getDetailRowsFromDOM();
-    rec.details = details;
-    // items = count of detail lines if available, else keep manual qty
-    if(details.length > 0) rec.items = details.length;
 
     if(type==='SR'){
         rec.sr_no=no;
